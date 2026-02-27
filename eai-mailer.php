@@ -119,9 +119,15 @@ function eai_mailer_settings_page() {
             
             <?php 
             if (isset($_GET['eai_test'])) {
-                $msg = ($_GET['eai_test'] == 'success') ? 'Test email sent successfully!' : 'Error: ' . esc_html($_GET['error']);
-                $class = ($_GET['eai_test'] == 'success') ? 'notice-success' : 'notice-error';
-                echo "<div class='notice $class is-dismissible' style='margin-left:0;'><p>$msg</p></div>";
+                if ($_GET['eai_test'] == 'success') {
+                    echo "<div class='notice notice-success is-dismissible'><p>Test email sent successfully!</p></div>";
+                } else {
+                    $error = esc_html($_GET['error']);
+                    echo "<div class='notice notice-error is-dismissible'>
+                            <p><strong>Send Failed:</strong> $error</p>
+                            <p><a href='" . admin_url('admin.php?page=eai-mailer-logs') . "'>View detailed logs</a> for more information.</p>
+                        </div>";
+                }
             }
             ?>
 
@@ -246,12 +252,12 @@ add_action('admin_post_eai_send_test_email', function() {
     $sent = wp_mail($recipient, $subject, $message);
 
     if ($sent) {
-        wp_redirect(admin_url('options-general.php?page=eai-mailer&eai_test=success'));
+        wp_redirect(admin_url('admin.php?page=eai-mailer&eai_test=success'));
         exit;
     } else {
-        echo "<h4><span style='color:red;'>FAILED:</span> The mail could not be sent.</h4>";
-        echo "<p>Review the SMTP debug log above. Common issues include Port 587 being blocked by your host or 'Less Secure Apps' being disabled.</p>";
-        echo '<a href="'.admin_url('options-general.php?page=eai-mailer').'" class="button">Back to Settings</a>';
+        global $phpmailer;
+        $error = !empty($phpmailer->ErrorInfo) ? $phpmailer->ErrorInfo : 'Unknown SMTP Error';
+        wp_redirect(admin_url('admin.php?page=eai-mailer&eai_test=error&error=' . urlencode($error)));
         exit;
     }
 });
