@@ -154,11 +154,13 @@ add_action('admin_post_eai_send_test_email', function() {
 
     $subject = "EAI Multi-Script Test: 挨拶, नमस्ते & هنّو ";
     $message = "This email confirms that your WordPress site can successfully route and send:\n\n" .
-               "1. Japanese Kanji (挨拶)\n" .
-               "2. French Accents (élève)\n" .
-               "3. Yoruba Diacritics (ọ̀pọ̀lọpọ̀)\n" .
+               "1. Japanese Kanji (こんにちは)\n" .
+               "2. French Accents (Allô)\n" .
+               "3. Yoruba Diacritics (Ẹ káàbọ̀)\n" .
                "4. Hindi Devanagari (नमस्ते)\n" .
-               "5. Hausa Ajami (هنّو)\n\n" .
+               "5. Hausa Ajami (السلام)\n" .
+               "6. Amharic Fidel (ሰላም)\n" .
+               "7. Arabic Script (مرحبا)\n" .
                "Sent via custom SMTP override with UTF-8 encoding.";
 
     echo "<h3>Attempting to send EAI Test Email...</h3>";
