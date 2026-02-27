@@ -3,7 +3,7 @@
  * Plugin Name: EAI SMTP Mailer
  * Plugin URI:  https://upperlink.ng
  * Description: An overider of the wp_mail)_ function to use SMPT instead.
- * Version: 0.1.2
+ * Version: 0.1.4
  * Author: Oluseun Taylor
  * Author URI: https://seuntaylor.co
  * Text Domain: eai-mailer
@@ -32,6 +32,32 @@ function eai_mailer_menu() {
 
     // Add Logs submenu
     add_submenu_page('eai-mailer', 'Email Logs', 'Logs', 'manage_options', 'eai-mailer-logs', 'eai_mailer_logs_page');
+}
+
+// Create the Log Database, if it doesn't exist
+register_activation_hook( __FILE__, 'eai_mailer_create_log_table' );
+
+function eai_mailer_create_log_table() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'eai_email_logs';
+    $charset_collate = $wpdb->get_charset_collate();
+
+    // dbDelta is very picky: 
+    // 1. Two spaces after PRIMARY KEY
+    // 2. Do not use quotes on the table name
+    // 3. Each field on its own line
+    $sql = "CREATE TABLE $table_name (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        timestamp datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        recipient text NOT NULL,
+        subject text NOT NULL,
+        status varchar(20) NOT NULL,
+        error_message text,
+        PRIMARY KEY  (id)
+    ) $charset_collate;";
+
+    require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+    dbDelta( $sql );
 }
 
 // The Logs Logic
