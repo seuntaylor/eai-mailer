@@ -116,29 +116,6 @@ function eai_mailer_smtp_override($phpmailer) {
     $phpmailer->Encoding = 'base64'; // Helps prevent character corruption in transit
 }
 
-// Test Form HTML to your existing settings page
-add_action('admin_footer', function() {
-    $screen = get_current_screen();
-    if ($screen->id !== 'settings_page_eai-mailer') return;
-    ?>
-    <hr>
-    <div class="wrap">
-        <h2>Test Your EAI Mailer</h2>
-        <p>Enter an internationalized email address below to test the UTF-8 SMTP override.</p>
-        <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
-            <input type="hidden" name="action" value="eai_send_test_email">
-            <?php wp_nonce_field('eai_test_nonce'); ?>
-            <input type="email" name="test_recipient" placeholder="こんにちは@élève.com" required style="width: 300px;">
-            <?php submit_button('Send Test Email', 'secondary', 'submit', false); ?>
-        </form>
-    </div>
-    <?php
-    if (isset($_GET['eai_test'])) {
-        $msg = ($_GET['eai_test'] == 'success') ? 'Test email sent successfully!' : 'Error: ' . esc_html($_GET['error']);
-        $class = ($_GET['eai_test'] == 'success') ? 'updated' : 'error';
-        echo "<div class='$class'><p>$msg</p></div>";
-    }
-});
 
 // The Logic to Send the Test Email
 add_action('admin_post_eai_send_test_email', function() {
