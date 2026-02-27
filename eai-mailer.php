@@ -3,7 +3,7 @@
  * Plugin Name: EAI SMTP Mailer
  * Plugin URI:  https://upperlink.ng
  * Description: An overider of the wp_mail)_ function to use SMPT instead.
- * Version: 0.1.0
+ * Version: 0.1.2
  * Author: Oluseun Taylor
  * Author URI: https://seuntaylor.co
  * Text Domain: eai-mailer
@@ -16,7 +16,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 // 1. Settings Menu
 add_action('admin_menu', 'eai_mailer_menu');
 function eai_mailer_menu() {
-    add_options_page('EAI Mailer Settings', 'EAI Mailer', 'manage_options', 'eai-mailer', 'eai_mailer_settings_page');
+    // Add Main Menu (Position 58 is just above Appearance)
+    add_menu_page(
+        'EAI Mailer', 
+        'EAI Mailer', 
+        'manage_options', 
+        'eai-mailer', 
+        'eai_mailer_settings_page', 
+        'dashicons-email-alt', 
+        58 
+    );
+
+    // Add Settings Submenu
+    add_submenu_page('eai-mailer', 'Settings', 'Settings', 'manage_options', 'eai-mailer', 'eai_mailer_settings_page');
+
+    // Add Logs submenu
+    add_submenu_page('eai-mailer', 'Email Logs', 'Logs', 'manage_options', 'eai-mailer-logs', 'eai_mailer_logs_page');
 }
 
 // 2. The Settings Page HTML
@@ -69,7 +84,7 @@ function eai_mailer_settings_page() {
     <?php
 }
 
-// 3. Settings & Fields Registration
+// Settings & Fields Registration
 add_action('admin_init', 'eai_mailer_settings_init');
 function eai_mailer_settings_init() {
     register_setting('eai_mailer_group', 'eai_mailer_options');
@@ -98,7 +113,7 @@ function eai_field_render($args) {
     echo "<input type='$type' name='eai_mailer_options[{$args['id']}]' value='" . esc_attr($value) . "' class='regular-text'>";
 }
 
-// 4. SMTP Override (The magic for EAI)
+// SMTP Override (the EAI sauce)
 add_action('phpmailer_init', 'eai_mailer_smtp_override');
 function eai_mailer_smtp_override($phpmailer) {
     $options = get_option('eai_mailer_options');
@@ -125,14 +140,14 @@ function eai_mailer_smtp_override($phpmailer) {
     }
 
     // Timeout Management: Don't let the server hang indefinitely
-    $phpmailer->Timeout = 15; // 15 seconds is plenty
+    $phpmailer->Timeout = 20; // 20 seconds is plenty
 
     // EAI Support
     $phpmailer->CharSet = 'UTF-8';
     $phpmailer->Encoding = 'base64'; 
 }
 
-// 5. The Logic to Send the Test Email
+// Send the Test Email Logic
 add_action('admin_post_eai_send_test_email', function() {
     check_admin_referer('eai_test_nonce');
     if (!current_user_can('manage_options')) wp_die('Unauthorized');
