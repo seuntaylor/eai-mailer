@@ -57,7 +57,7 @@ function eai_mailer_settings_page() {
                         <th scope="row"><label for="test_recipient">Recipient Email</label></th>
                         <td>
                             <input type="text" name="test_recipient" id="test_recipient" 
-                                   placeholder="こんにちは@élève.com" class="regular-text" required>
+                                   placeholder="こんにちは@élève.com" value="こんにちは@élève.com" class="regular-text" required>
                             <p class="description">Enter an EAI address to test mixed script support.</p>
                         </td>
                     </tr>
