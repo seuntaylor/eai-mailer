@@ -152,6 +152,7 @@ add_action('admin_post_eai_send_test_email', function() {
         };
     });
 
+    $subject = "EAI Multi-Script Test: 挨拶, नमस्ते & هنّو ";
     $message = "This email confirms that your WordPress site can successfully route and send:\n\n" .
                "1. Japanese Kanji (挨拶)\n" .
                "2. French Accents (élève)\n" .
