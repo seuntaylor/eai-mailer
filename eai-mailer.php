@@ -137,24 +137,33 @@ add_action('admin_post_eai_send_test_email', function() {
     check_admin_referer('eai_test_nonce');
     if (!current_user_can('manage_options')) wp_die('Unauthorized');
 
-    // We bypass standard sanitize_email() here to preserve EAI characters for the test
     $recipient = $_POST['test_recipient']; 
     
-    $subject = "EAI Test: 挨拶 from élève site 🚀";
-    $message = "This email confirms that your WordPress site can successfully route and send:\n\n" .
-               "1. Japanese Kanji (挨拶)\n" .
-               "2. French Accents (élève)\n" .
-               "3. Yoruba Diacritics (ọ̀pọ̀lọpọ̀)\n\n" .
-               "Sent via custom SMTP override with UTF-8 encoding.";
+    // Enable raw output to catch errors before the Gateway Timeout
+    add_action('wp_mail_failed', function($error) {
+        wp_die('<pre>' . print_r($error, true) . '</pre>');
+    });
 
+    // Force PHPMailer to be "Chatty" for this request
+    add_action('phpmailer_init', function($phpmailer) {
+        $phpmailer->SMTPDebug = 3; // Detailed connection logs
+        $phpmailer->Debugoutput = function($str, $level) {
+            echo "SMTP DEBUG: $str<br>";
+        };
+    });
+
+    $subject = "EAI Test: 挨拶 from élève site 🚀";
+    $message = "Test message content.";
+
+    echo "<h3>Initiating SMTP Connection...</h3>";
     $sent = wp_mail($recipient, $subject, $message);
 
     if ($sent) {
         wp_redirect(admin_url('options-general.php?page=eai-mailer&eai_test=success'));
+        exit;
     } else {
-        global $phpmailer;
-        $error = !empty($phpmailer->ErrorInfo) ? $phpmailer->ErrorInfo : 'Unknown SMTP Error';
-        wp_redirect(admin_url('options-general.php?page=eai-mailer&eai_test=error&error=' . urlencode($error)));
+        echo "<h4>The mail failed to send. Check the debug logs above.</h4>";
+        echo '<a href="'.admin_url('options-general.php?page=eai-mailer').'">Back to Settings</a>';
+        exit; // Stop execution so we can read the debug logs
     }
-    exit;
 });
