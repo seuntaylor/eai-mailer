@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-// 1. Settings Menu
+// Settings Menu
 add_action('admin_menu', 'eai_mailer_menu');
 function eai_mailer_menu() {
     // Add Main Menu (Position 58 is just above Appearance)
@@ -34,7 +34,69 @@ function eai_mailer_menu() {
     add_submenu_page('eai-mailer', 'Email Logs', 'Logs', 'manage_options', 'eai-mailer-logs', 'eai_mailer_logs_page');
 }
 
-// 2. The Settings Page HTML
+// The Logs Logic
+add_action('wp_mail_failed', 'eai_log_failed_email');
+function eai_log_failed_email( $error ) {
+    eai_record_log($error->get_error_data()['to'][0] ?? 'Unknown', $error->get_error_data()['subject'] ?? 'No Subject', 'Failed', $error->get_error_message());
+}
+
+// We also hook into successful sends
+add_action('wp_mail_succeeded', 'eai_log_success_email');
+function eai_log_success_email( $mail_data ) {
+    eai_record_log($mail_data['to'][0], $mail_data['subject'], 'Success');
+}
+
+function eai_record_log($to, $sub, $status, $err = '') {
+    global $wpdb;
+    $wpdb->insert(
+        $wpdb->prefix . 'eai_email_logs',
+        array(
+            'recipient' => $to,
+            'subject'   => $sub,
+            'status'    => $status,
+            'error_message' => $err
+        )
+    );
+}
+
+// The Logs Page HTML
+function eai_mailer_logs_page() {
+    global $wpdb;
+    $logs = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}eai_email_logs ORDER BY timestamp DESC LIMIT 50");
+    ?>
+    <div class="wrap">
+        <h1>EAI Email Logs</h1>
+        <table class="wp-list-table widefat fixed striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Recipient</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Error/Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($logs as $log): ?>
+                <tr>
+                    <td><?php echo esc_html($log->timestamp); ?></td>
+                    <td><?php echo esc_html($log->recipient); ?></td>
+                    <td><?php echo esc_html($log->subject); ?></td>
+                    <td>
+                        <span class="badge" style="color:white; padding:3px 8px; border-radius:3px; background:<?php echo $log->status == 'Success' ? '#46b450' : '#dc3232'; ?>">
+                            <?php echo esc_html($log->status); ?>
+                        </span>
+                    </td>
+                    <td><?php echo esc_html($log->error_message); ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php
+}
+
+// The Settings Page HTML
 function eai_mailer_settings_page() {
     ?>
     <div class="wrap">
