@@ -152,22 +152,26 @@ add_action('admin_post_eai_send_test_email', function() {
         };
     });
 
-    $subject = "EAI Test: 挨拶 from élève.com";
     $message = "This email confirms that your WordPress site can successfully route and send:\n\n" .
                "1. Japanese Kanji (挨拶)\n" .
                "2. French Accents (élève)\n" .
-               "3. Yoruba Diacritics (ọ̀pọ̀lọpọ̀)\n\n" .
+               "3. Yoruba Diacritics (ọ̀pọ̀lọpọ̀)\n" .
+               "4. Hindi Devanagari (नमस्ते)\n" .
+               "5. Hausa Ajami (هنّو)\n\n" .
                "Sent via custom SMTP override with UTF-8 encoding.";
 
-    echo "<h3>Initiating SMTP Connection...</h3>";
+    echo "<h3>Attempting to send EAI Test Email...</h3>";
+    echo "<p>Checking connection to SMTP host...</p>";
+
     $sent = wp_mail($recipient, $subject, $message);
 
     if ($sent) {
         wp_redirect(admin_url('options-general.php?page=eai-mailer&eai_test=success'));
         exit;
     } else {
-        echo "<h4>The mail failed to send. Check the debug logs above.</h4>";
-        echo '<a href="'.admin_url('options-general.php?page=eai-mailer').'">Back to Settings</a>';
-        exit; // Stop execution so we can read the debug logs
+        echo "<h4><span style='color:red;'>FAILED:</span> The mail could not be sent.</h4>";
+        echo "<p>Review the SMTP debug log above. Common issues include Port 587 being blocked by your host or 'Less Secure Apps' being disabled.</p>";
+        echo '<a href="'.admin_url('options-general.php?page=eai-mailer').'" class="button">Back to Settings</a>';
+        exit;
     }
 });
